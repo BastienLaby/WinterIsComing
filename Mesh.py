@@ -5,20 +5,14 @@ import os
 
 
 
-class OBJ:
+class Mesh:
 
-    def __init__(self, objFile):
+    def __init__(self):
 
         self.materials = {}
-        self.gl_list = 0
+        self.glList = 0
 
-        self.objPath = ""
-        self.assetsPath = ""
-        self.mtlPath = ""
-
-        self.update(objFile)
-
-    def loadGeometry(self, objFile):
+    def loadFromObj(self, filename):
 
         # --------------------------------------------------------------------------------------------------------------------
         # Open file
@@ -27,10 +21,11 @@ class OBJ:
         f = None
 
         try:
-            f = open(objFile, "r")
+            f = open(filename, "r")
         except IOError:
-            raise OBJFrameLoadingError('Cannot open %s' % objFile)
+            raise OBJFrameLoadingError('Cannot open %s' % filename)
 
+        self.rootPath = "/".join(filename.split("/")[:-1]) + "/"
 
         # --------------------------------------------------------------------------------------------------------------------
         # Initialization
@@ -49,32 +44,24 @@ class OBJ:
 
         for line in f:
             
-            # If the line is a comment
             if line.startswith('#'):
                 continue
 
-            # Get the value of the line
             values = line.split()
 
-            # If the line is empty
             if not values:
                 continue
 
-            # If the line is a POSITION attribute
             if values[0] == 'v':
                 v = map(float, values[1:4])
                 self.vertices.append(v)
 
-            # If the line is a NORMAL attribute
             elif values[0] == 'vn':
                 v = map(float, values[1:4])
                 self.normals.append(v)
 
-            # If the line is a TEXCOORD attribute
             elif values[0] == 'vt':
                 self.texcoords.append(map(float, values[1:3]))
-
-            # If the line refers to MATERIAL attributes
 
             elif values[0] in ('usemtl', 'usemat'):
                 materialName = values[1]
@@ -82,7 +69,6 @@ class OBJ:
             elif values[0] == 'mtllib':
                 self.loadMaterialFile(values[1])                
 
-            # If the line is a FACE
             elif values[0] == 'f':
                 face = []
                 texcoords = []
@@ -101,27 +87,23 @@ class OBJ:
                 self.faces.append((face, norms, texcoords, materialName))
         return
 
+    def loadMaterialFile(self, filename):
 
-    def loadMaterialFile(self, mtlFileName):
-
-        # Example : mtlFileName = set.mtl
 
         f = None
         try:
-            f = open(self.mtlPath + mtlFileName, "r")
+            f = open(self.rootPath + filename, "r")
         except IOError:
-            print('The program cannot load %s.\nEnd of program.' % str(self.mtlPath + mtlFileName))
+            print('The program cannot load %s.\nEnd of program.' % str(self.rootPath + filename))
             return None 
 
         currentMTLName = ""
 
         for line in f:
 
-            # If the line is a comment
             if line.startswith('#'):
                 continue
 
-            # Get the value of the line
             values = line.split()
 
             if not values:
@@ -134,35 +116,20 @@ class OBJ:
                 else:
                     continue
 
-            # Param 'map_Kd' -> Load a texture into GL
             elif values[0] == 'map_Kd':
           
-                surf = None
-
                 hasToScale = False
                 sx, sy = 1, 1
                 if(values[1] == '-s'):
                     hasToScale = True
                     sx, sy = values[2], values[3]
-                    textureFile = self.assetsPath + values[4]
+                    textureFile = self.rootPath + values[4]
                 else:
-                    textureFile = self.assetsPath + values[1]
+                    textureFile = self.rootPath + values[1]
 
-                # Handle .map textures
-                if(textureFile.__contains__(".map")):
-                    try:
-                        open(textureFile.replace(".map", ".tga"), 'r')
-                        surf = pygame.image.load(os.path.join("", textureFile.replace(".map", ".tga")))
-                    except IOError: # If the corresponding tga file doesn't exist, convert the .map to .tga using imf_copy
-                        cmd = "D:/64/Autodesk/mentalrayForMaya2014/bin/imf_copy.exe " + textureFile + " " + textureFile.replace(".map", ".tga")
-                        os.system(cmd)
-                        surf = pygame.image.load(os.path.join("", textureFile.replace(".map", ".tga")))
-                else:
-                    surf = pygame.image.load(os.path.join("", textureFile.replace(".map", ".tga")))              
-                
-                # Load Texture data
-                image = pygame.image.tostring(surf, 'RGBA', 1)
-                ix, iy = surf.get_rect().size
+                data = pygame.image.load(os.path.join("", textureFile))
+                image = pygame.image.tostring(data, 'RGBA', 1)
+                ix, iy = data.get_rect().size
                 
                 # Generate GL Texture
                 self.materials[currentMTLName]['textureID'] = glGenTextures(1)
@@ -174,12 +141,11 @@ class OBJ:
             else:
                 self.materials[currentMTLName][values[0]] = map(float, values[1:])
 
-
     def generateGLLists(self):
 
-        glDeleteLists(self.gl_list, 1)
-        self.gl_list = glGenLists(1)
-        glNewList(self.gl_list, GL_COMPILE)
+        glDeleteLists(self.glList, 1)
+        self.glList = glGenLists(1)
+        glNewList(self.glList, GL_COMPILE)
 
         for face in self.faces:
 
@@ -225,13 +191,6 @@ class OBJ:
 
         return
 
-    def update(self, objFile):
-
-        ss = objFile.split("/")
-        self.objPath = "/".join(ss[0:len(ss)-1]) + "/"
-        self.assetsPath = "/".join(ss[0:len(ss)-1]) + "/"
-        self.mtlPath = self.objPath
-
-        self.loadGeometry(objFile)
-        self.generateGLLists()
+    def draw(self):
+        glCallList(self.glList)
         
