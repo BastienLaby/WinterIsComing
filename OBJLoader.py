@@ -3,11 +3,7 @@ from OpenGL.GL import *
 from time import *
 import os
 
-class OBJFrameLoadingError(Exception):
-    def __init__(self, value):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
+
 
 class OBJ:
 
