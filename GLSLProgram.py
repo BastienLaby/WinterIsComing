@@ -14,9 +14,9 @@ class GLSLProgram():
             vs = self.createAndCompileShader(GL_VERTEX_SHADER, f.read())
             glAttachShader(self.id, vs)
         except IOError as e:
-            print('Fail to load ' + str(vertexShaderFile))
+            print("Fail to load" + str(vertexShaderFile))
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
-            return
+            exit()
 
         # Load Fragment Shader
         try:
@@ -24,9 +24,14 @@ class GLSLProgram():
             fs = self.createAndCompileShader(GL_FRAGMENT_SHADER, f.read())
             glAttachShader(self.id, fs)
         except IOError as e:
-            print('Fail to load ' + str(vertexShaderFile))
+            print("Fail to load " + str(fragmentShaderFile))
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
-            return
+            exit()
+
+        glBindAttribLocation(self.id,  0,  b"vs_in_position");
+        glBindAttribLocation(self.id,  1,  b"vs_in_normal");
+        glBindAttribLocation(self.id,  2,  b"vs_in_texcoord");
+        glBindFragDataLocation(self.id, 0, b"Color");
 
         glLinkProgram(self.id)
         glDeleteShader(vs)
@@ -37,7 +42,9 @@ class GLSLProgram():
         loglength = glGetProgramiv(self.id, GL_INFO_LOG_LENGTH)
         if(loglength > 1):
             print("Error in linking shaders (status = %s) : %s" % (str(status), glGetProgramInfoLog(self.id)))
-            return
+            exit()
+
+        print("Shaders successfully loaded")
 
     def createAndCompileShader(self, shaderType, source):
         
@@ -50,6 +57,6 @@ class GLSLProgram():
         loglength = glGetShaderiv(shader, GL_INFO_LOG_LENGTH)
         if(loglength > 1):
             print("Error in compiling %s (Status = %s): %s" % (str(shaderType), str(status), glGetShaderInfoLog(shader)))
-            return
+            exit()
 
         return shader

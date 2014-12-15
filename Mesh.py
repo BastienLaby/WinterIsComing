@@ -1,8 +1,13 @@
 import os
 
 from OpenGL.GL import *
+from OpenGL.arrays import vbo
 
 import pygame
+
+import numpy as np
+
+from ctypes import c_float
 
 class Mesh:
 
@@ -154,4 +159,7 @@ class Mesh:
         glEndList()
 
     def draw(self):
-        glCallList(self.glList)
+        # glCallList(self.glList)
+        glBindVertexArray(self.vao)
+        glDrawElements(GL_TRIANGLES, 12 * 3, GL_UNSIGNED_INT, None)
+        glBindVertexArray(0)

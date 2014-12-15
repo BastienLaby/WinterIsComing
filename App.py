@@ -7,6 +7,7 @@ import time
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
+import OpenGL.GLUT as glut
 
 import pygame
 
@@ -14,9 +15,9 @@ from GLSLProgram import GLSLProgram
 from GLTexture import Texture, TextureMS
 import Camera
 import Mesh
+import Cube
 import SnowEngine
 from Tools import glCheckError, glCheckFbo
-import UsefulFunctions as UF
 
 class Viewport():
 
@@ -49,13 +50,16 @@ class Viewport():
 
         print('Load geometry...')
 
-        self.obj = Mesh.Mesh()
-        self.obj.loadFromObj("E:/Bastien/AngeloChristmas/scenes/bedroom/bedroom.obj")
-        self.obj.generateGLLists()
+        # self.obj = Mesh.Mesh()
+        # # self.obj.loadFromObj("E:/Bastien/AngeloChristmas/scenes/bedroom/bedroom.obj")
+        # self.obj.loadFromObj("C:/Users/Bastien/Documents/work/AngeloChristmas/scenes/bedroom/bedroom.obj")
+        # self.obj.generateGLLists()
 
-        self.ground = Mesh.Mesh()
-        self.ground.loadFromObj("E:/Bastien/AngeloChristmas/scenes/bedroom/ground.obj")
-        self.ground.generateGLLists()
+        # self.ground = Mesh.Mesh()
+        # self.ground.loadFromObj("E:/Bastien/AngeloChristmas/scenes/bedroom/ground.obj")
+        # self.ground.generateGLLists()
+
+        self.cube = Cube.Cube()
 
         self.loadTextures()
         
@@ -75,18 +79,16 @@ class Viewport():
 
         self.se = SnowEngine.SnowEngine()
         self.se.setSize([250, 250])
-        self.se.setRate(10)
+        self.se.setRate(20)
+        self.se.setHeight(25)
 
         self.displayedPass = "ColorPass"
 
 ####################################################################################################################################################
 
     def loadTextures(self):
-
         nbSample = 8
-
         self.texs = {}
-
         self.texs["color_ms"] = TextureMS(nbSample, GL_RGBA8, self.width, self.height)
         self.texs["depth_ms"] = TextureMS(nbSample, GL_DEPTH_COMPONENT24, self.width, self.height)
         self.texs["color"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
@@ -95,7 +97,8 @@ class Viewport():
 ####################################################################################################################################################
 
     def computeShaders(self):
-        pathToShaders = "E:/Bastien/WinterIsComing/shaders/"
+        # pathToShaders = "E:/Bastien/WinterIsComing/shaders/"
+        pathToShaders = "C:/Users/Bastien/Documents/work/WinterIsComing/shaders/"
         self.programs = {}
         self.programs["prepass"] = GLSLProgram(pathToShaders + "prepass.vs", pathToShaders + "prepass.fs")
         glCheckError()
@@ -103,8 +106,9 @@ class Viewport():
 ####################################################################################################################################################
 
     def renderscene(self):
-        self.obj.draw()
-        self.ground.draw()
+        # self.obj.draw()
+        # self.ground.draw()
+        self.cube.draw()
         pass
 
 ####################################################################################################################################################
@@ -186,8 +190,8 @@ class Viewport():
         glViewport(0, 0, self.width, self.height)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        glUseProgram(self.programs["prepass"].id)
-        glUniform1i(glGetUniformLocation(self.programs["prepass"].id, "tex"), 0)
+        projLoc = glGetUniformLocation(self.programs["prepass"].id, "u_projection")
+        viewLoc = glGetUniformLocation(self.programs["prepass"].id, "u_view")
 
         self.renderscene()
         self.se.drawSnow()
