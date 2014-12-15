@@ -1,25 +1,18 @@
-import pygame
-from OpenGL.GL import *
-from time import *
 import os
 
+from OpenGL.GL import *
 
+import pygame
 
 class Mesh:
 
     def __init__(self):
-
         self.materials = {}
         self.glList = 0
 
     def loadFromObj(self, filename):
 
-        # --------------------------------------------------------------------------------------------------------------------
-        # Open file
-        # --------------------------------------------------------------------------------------------------------------------
-
         f = None
-
         try:
             f = open(filename, "r")
         except IOError:
@@ -27,20 +20,12 @@ class Mesh:
 
         self.rootPath = "/".join(filename.split("/")[:-1]) + "/"
 
-        # --------------------------------------------------------------------------------------------------------------------
-        # Initialization
-        # --------------------------------------------------------------------------------------------------------------------
-
         self.vertices = []
         self.normals = []
         self.texcoords = []
         self.faces = []
         
         materialName = None
-
-        # --------------------------------------------------------------------------------------------------------------------
-        # Load Data
-        # --------------------------------------------------------------------------------------------------------------------
 
         for line in f:
             
@@ -53,12 +38,10 @@ class Mesh:
                 continue
 
             if values[0] == 'v':
-                v = map(float, values[1:4])
-                self.vertices.append(v)
+                self.vertices.append(map(float, values[1:4]))
 
             elif values[0] == 'vn':
-                v = map(float, values[1:4])
-                self.normals.append(v)
+                self.normals.append(map(float, values[1:4]))
 
             elif values[0] == 'vt':
                 self.texcoords.append(map(float, values[1:3]))
@@ -70,9 +53,7 @@ class Mesh:
                 self.loadMaterialFile(values[1])                
 
             elif values[0] == 'f':
-                face = []
-                texcoords = []
-                norms = []
+                face, texcoords, norms = [], [], []
                 for v in values[1:]:
                     w = v.split('/')
                     face.append(int(w[0]))
@@ -88,7 +69,6 @@ class Mesh:
         return
 
     def loadMaterialFile(self, filename):
-
 
         f = None
         try:
@@ -119,24 +99,24 @@ class Mesh:
             elif values[0] == 'map_Kd':
           
                 hasToScale = False
-                sx, sy = 1, 1
+                scaleX, scaleY = 1, 1
                 if(values[1] == '-s'):
                     hasToScale = True
-                    sx, sy = values[2], values[3]
+                    scaleX, scaleY = values[2], values[3]
                     textureFile = self.rootPath + values[4]
                 else:
                     textureFile = self.rootPath + values[1]
 
                 data = pygame.image.load(os.path.join("", textureFile))
                 image = pygame.image.tostring(data, 'RGBA', 1)
-                ix, iy = data.get_rect().size
+                w, h = data.get_rect().size
                 
                 # Generate GL Texture
                 self.materials[currentMTLName]['textureID'] = glGenTextures(1)
                 glBindTexture(GL_TEXTURE_2D, self.materials[currentMTLName]['textureID'])
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ix, iy, 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
 
             else:
                 self.materials[currentMTLName][values[0]] = map(float, values[1:])
@@ -148,13 +128,8 @@ class Mesh:
         glNewList(self.glList, GL_COMPILE)
 
         for face in self.faces:
-
             vertices, normals, texture_coords, materialName = face
-            
             currentMaterial = self.materials[materialName]
-
-            # Bind the correct texture
-
             if 'textureID' in currentMaterial:
                 glActiveTexture(GL_TEXTURE0)
                 glBindTexture(GL_TEXTURE_2D, currentMaterial['textureID'])
@@ -162,35 +137,21 @@ class Mesh:
                 rgb = list(currentMaterial['Kd'])
                 if rgb:
                     glColor3f(rgb[0], rgb[1], rgb[2])
-
-            # Draw the geometry
-
             glBegin(GL_POLYGON)
-
             for i in range(len(vertices)):
+                vertex = list(self.vertices[vertices[i] - 1])
+                glVertex3f(vertex[0], vertex[1], vertex[2])
 
                 if normals[i] > 0:
                     normal = list(self.normals[normals[i] - 1])
-                    if normal:
-                        glNormal3f(normal[0], normal[1], normal[2])
-
+                    glNormal3f(normal[0], normal[1], normal[2])
                 if texture_coords[i] > 0:
                     tex = list(self.texcoords[texture_coords[i] - 1])
-                    if tex:
-                        glTexCoord2f(tex[0], tex[1])
-
-                vertex = list(self.vertices[vertices[i] - 1])
-                if vertex:
-                    glVertex3f(vertex[0], vertex[1], vertex[2])
-
+                    glTexCoord2f(tex[0], tex[1])
             glEnd()
 
         glBindTexture(GL_TEXTURE_2D, 0)
-
         glEndList()
-
-        return
 
     def draw(self):
         glCallList(self.glList)
-        

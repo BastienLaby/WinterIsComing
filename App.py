@@ -10,13 +10,13 @@ from OpenGL.GLU import *
 
 import pygame
 
-from GLProgram import *
-import GLTools
-from GLTexture import *
-import UsefulFunctions as UF
+from GLSLProgram import GLSLProgram
+from GLTexture import Texture, TextureMS
 import Camera
 import Mesh
 import SnowEngine
+from Tools import glCheckError, glCheckFbo
+import UsefulFunctions as UF
 
 class Viewport():
 
@@ -49,9 +49,9 @@ class Viewport():
 
         print('Load geometry...')
 
-        # self.obj = Mesh.Mesh()
-        # self.obj.loadFromObj("E:/Bastien/AngeloChristmas/scenes/bedroom/bedroom.obj")
-        # self.obj.generateGLLists()
+        self.obj = Mesh.Mesh()
+        self.obj.loadFromObj("E:/Bastien/AngeloChristmas/scenes/bedroom/bedroom.obj")
+        self.obj.generateGLLists()
 
         self.ground = Mesh.Mesh()
         self.ground.loadFromObj("E:/Bastien/AngeloChristmas/scenes/bedroom/ground.obj")
@@ -63,13 +63,13 @@ class Viewport():
         glBindFramebuffer(GL_FRAMEBUFFER, self.FBOMultisampled)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, self.texs["color_ms"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, self.texs["depth_ms"].id, 0)
-        GLTools.checkFBO()
+        glCheckFbo()
 
         self.FBO = glGenFramebuffers(1)
         glBindFramebuffer(GL_FRAMEBUFFER, self.FBO)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.texs["color"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self.texs["depth"].id, 0)
-        GLTools.checkFBO()
+        glCheckFbo()
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
@@ -83,7 +83,7 @@ class Viewport():
 
     def loadTextures(self):
 
-        nbSample = 32
+        nbSample = 8
 
         self.texs = {}
 
@@ -97,13 +97,13 @@ class Viewport():
     def computeShaders(self):
         pathToShaders = "E:/Bastien/WinterIsComing/shaders/"
         self.programs = {}
-        self.programs["prepass"] = GLProgram(pathToShaders + "prepass.vs", pathToShaders + "prepass.fs")
-        GLTools.checkGLErrors()
+        self.programs["prepass"] = GLSLProgram(pathToShaders + "prepass.vs", pathToShaders + "prepass.fs")
+        glCheckError()
         
 ####################################################################################################################################################
 
     def renderscene(self):
-        # self.obj.draw()
+        self.obj.draw()
         self.ground.draw()
         pass
 
@@ -142,7 +142,7 @@ class Viewport():
             self.clock.tick(30)
             self.handleEvents()
 
-            self.camera.eye = [350 * cos(time.time()), 20, 350 * sin(time.time())]
+            self.camera.eye = [50 * cos(time.time()), 20, 50 * sin(time.time())]
             self.camera.target = [0, 0, 0]
 
             fov = 60
@@ -174,13 +174,13 @@ class Viewport():
         glBindFramebuffer(GL_FRAMEBUFFER, self.FBO)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.texs["color"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self.texs["depth"].id, 0)
-        GLTools.checkFBO()
+        glCheckFbo()
 
         glBindFramebuffer(GL_FRAMEBUFFER, self.FBOMultisampled)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, self.texs["color_ms"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, self.texs["depth_ms"].id, 0)
         glDrawBuffer(GL_COLOR_ATTACHMENT0)
-        GLTools.checkFBO()
+        glCheckFbo()
 
         glEnable(GL_DEPTH_TEST)
         glViewport(0, 0, self.width, self.height)

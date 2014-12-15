@@ -5,8 +5,6 @@ from random import random
 
 from OpenGL.GL import *
 
-
-
 class SnowParticle:
 
     def __init__(self, xyz, rgb, size, speed):
@@ -37,7 +35,7 @@ class SnowEngine:
         for i in range(self.rate):
             xyz = [random(), self.height + random() * self.heightVeriation, random()]
             xyz[0] = xyz[0] * self.size[0] - self.size[0]/2.0
-            xyz[2] = xyz[2] * self.size[1] - self.size[1]/1.0
+            xyz[2] = xyz[2] * self.size[1] - self.size[1]/2.0
             rgb = [random(), random(), random()]
             size = random()
             speed = min(self.maximumParticleSpeed, max(self.minimumParticleSpeed, random()))

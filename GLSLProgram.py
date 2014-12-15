@@ -1,6 +1,6 @@
 from OpenGL.GL import *
 
-class GLProgram():
+class GLSLProgram():
 
     def __init__(self, vertexShaderFile, fragmentShaderFile):
 

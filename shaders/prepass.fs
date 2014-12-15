@@ -1,11 +1,12 @@
 #version 120
 
-varying in float height;
-
 uniform sampler2D tex;
 
 void main() {
     vec4 color = texture2D(tex, gl_TexCoord[0].st);
-    gl_FragColor = vec4(vec3(height / 50.0), 1.0);
-    gl_FragColor = vec4(1.0);
+    gl_FragColor = color;
+    if(gl_FragColor.x <= 0.0 && gl_FragColor.y <= 0.0 && gl_FragColor.z <= 0)
+    {
+    	gl_FragColor = gl_Color;
+    }
 }

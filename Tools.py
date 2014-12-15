@@ -1,9 +1,7 @@
 from OpenGL.GL import *
 
-def checkFBO():
-
+def glCheckFbo():
     status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
-
     if(status == GL_FRAMEBUFFER_UNDEFINED):
         print('GL_FRAMEBUFFER_UNDEFINED')
     elif(status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT):
@@ -23,6 +21,6 @@ def checkFBO():
     elif(status == 0):
         print('An error occurs')
 
-def checkGLErrors():
+def glCheckError():
     if(glGetError() != GL_NO_ERROR):
         print('Error OpenGL : ' + str(glGetError()))
