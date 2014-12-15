@@ -1,24 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
+from math import cos, sin
+import time
+
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from OpenGL.constants import GLuint
-from OpenGL.raw import *
 
 import pygame
 
-import sys
-from math import *
-from ctypes import *
-
-from OBJLoader import *
 from GLProgram import *
 import GLTools
 from GLTexture import *
 import UsefulFunctions as UF
 import Camera
 import Mesh
+import SnowEngine
 
 class Viewport():
 
@@ -44,8 +42,7 @@ class Viewport():
         pygame.key.set_repeat(3, 40)
 
         self.camera = Camera.Camera()
-        self.camera.eye = [-120, 50.0, -13.0]
-        self.camera.target = [0, 0, -13.0]
+        
         self.camera.up = [0, 1, 0]
         
         self.computeShaders()
@@ -67,17 +64,18 @@ class Viewport():
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, self.texs["color_ms"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, self.texs["depth_ms"].id, 0)
         GLTools.checkFBO()
-        GLTools.checkGLErrors()
 
         self.FBO = glGenFramebuffers(1)
         glBindFramebuffer(GL_FRAMEBUFFER, self.FBO)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.texs["color"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self.texs["depth"].id, 0)
-
         GLTools.checkFBO()
-        GLTools.checkGLErrors()
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+        self.se = SnowEngine.SnowEngine()
+        self.se.setSize([250, 250])
+        self.se.setRate(10)
 
         self.displayedPass = "ColorPass"
 
@@ -91,7 +89,6 @@ class Viewport():
 
         self.texs["color_ms"] = TextureMS(nbSample, GL_RGBA8, self.width, self.height)
         self.texs["depth_ms"] = TextureMS(nbSample, GL_DEPTH_COMPONENT24, self.width, self.height)
-
         self.texs["color"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
         self.texs["depth"] = Texture(GL_DEPTH_COMPONENT24, self.width, self.height, GL_DEPTH_COMPONENT, GL_FLOAT)
 
@@ -108,6 +105,7 @@ class Viewport():
     def renderscene(self):
         # self.obj.draw()
         self.ground.draw()
+        pass
 
 ####################################################################################################################################################
 
@@ -144,7 +142,10 @@ class Viewport():
             self.clock.tick(30)
             self.handleEvents()
 
-            fov = 40
+            self.camera.eye = [350 * cos(time.time()), 20, 350 * sin(time.time())]
+            self.camera.target = [0, 0, 0]
+
+            fov = 60
             aspect = float(self.width) / float(self.height)
             znear = 0.1
             zfar = 1000.0
@@ -158,6 +159,9 @@ class Viewport():
             gluLookAt(self.camera.eye[0], self.camera.eye[1], self.camera.eye[2],
                 self.camera.target[0], self.camera.target[1], self.camera.target[2],
                 self.camera.up[0], self.camera.up[1], self.camera.up[2]) 
+
+            
+            self.se.generateParticle()
 
             self.render()
 
@@ -186,6 +190,8 @@ class Viewport():
         glUniform1i(glGetUniformLocation(self.programs["prepass"].id, "tex"), 0)
 
         self.renderscene()
+        self.se.drawSnow()
+        self.se.updateParticles()
 
         # Blit
 
