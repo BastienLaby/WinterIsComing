@@ -16,6 +16,8 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 import OpenGL.GLUT as glut
 
+import numpy as np
+import numpy.linalg as npla
 import pygame
 
 from GLSLProgram import GLSLProgram
@@ -24,6 +26,7 @@ import Camera
 import Mesh
 import SnowEngine
 from Tools import glCheckError, glCheckFbo
+import uf
 
 def draw_quad():
     glBegin(GL_QUADS)
@@ -73,7 +76,6 @@ class Viewport():
         self.loadTextures()
         self.loadFbos()
         
-
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         self.se = SnowEngine.SnowEngine()
@@ -82,36 +84,49 @@ class Viewport():
         self.se.setHeight(10)
 
     def loadTextures(self):
+
         nbSample = 8
         self.texs = {}
+
+        self.texs["depth_ms"] = TextureMS(nbSample, GL_DEPTH_COMPONENT24, self.width, self.height)
         self.texs["color_ms"] = TextureMS(nbSample, GL_RGBA8, self.width, self.height)
         self.texs["illum_ms"] = TextureMS(nbSample, GL_RGBA8, self.width, self.height)
         self.texs["id_ms"] = TextureMS(nbSample, GL_RGBA8, self.width, self.height)
-        self.texs["shadowmap_ms"] = TextureMS(nbSample, GL_RGBA8, self.width, self.height)
-        self.texs["depth_ms"] = TextureMS(nbSample, GL_DEPTH_COMPONENT24, self.width, self.height)
+        self.texs["normal_ms"] = TextureMS(nbSample, GL_RGBA8, self.width, self.height)
+        
+        self.texs["depth"] = Texture(GL_DEPTH_COMPONENT24, self.width, self.height, GL_DEPTH_COMPONENT, GL_FLOAT)
+        self.texs["depthblit"] = Texture(GL_DEPTH_COMPONENT24, self.width, self.height, GL_DEPTH_COMPONENT, GL_FLOAT)
         self.texs["color"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
         self.texs["illum"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
         self.texs["id"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
-        self.texs["shadowmap"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
-        self.texs["depth"] = Texture(GL_DEPTH_COMPONENT24, self.width, self.height, GL_DEPTH_COMPONENT, GL_FLOAT)
+        self.texs["normal"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
+        self.texs["ssao"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
+        self.texs["rot"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
 
     def loadFbos(self):
-        self.FBOMultisampled = glGenFramebuffers(1)
-        glBindFramebuffer(GL_FRAMEBUFFER, self.FBOMultisampled)
+
+        self.fboPrepassMS = glGenFramebuffers(1)
+        glBindFramebuffer(GL_FRAMEBUFFER, self.fboPrepassMS)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, self.texs["color_ms"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D_MULTISAMPLE, self.texs["illum_ms"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D_MULTISAMPLE, self.texs["id_ms"].id, 0)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D_MULTISAMPLE, self.texs["shadowmap_ms"].id, 0)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D_MULTISAMPLE, self.texs["normal_ms"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, self.texs["depth_ms"].id, 0)
         glCheckFbo()
 
-        self.FBO = glGenFramebuffers(1)
-        glBindFramebuffer(GL_FRAMEBUFFER, self.FBO)
+        self.fboPrepass = glGenFramebuffers(1)
+        glBindFramebuffer(GL_FRAMEBUFFER, self.fboPrepass)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.texs["color"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, self.texs["illum"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, self.texs["id"].id, 0)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, self.texs["shadowmap"].id, 0)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, self.texs["normal"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self.texs["depth"].id, 0)
+        glCheckFbo()
+
+        self.fboSsao = glGenFramebuffers(1)
+        glBindFramebuffer(GL_FRAMEBUFFER, self.fboSsao)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.texs["ssao"].id, 0)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self.texs["depthblit"].id, 0)
         glCheckFbo()
 
     def computeShaders(self):
@@ -120,6 +135,7 @@ class Viewport():
         self.programs = {}
         self.programs["prepass"] = GLSLProgram(pathToShaders + "prepass.vs", pathToShaders + "prepass.fs")
         self.programs["blit"] = GLSLProgram(pathToShaders + "blit.vs", pathToShaders + "blit.fs")
+        self.programs["ssao"] = GLSLProgram(pathToShaders + "ssao.vs", pathToShaders + "ssao.fs")
         glCheckError()
 
     def handleEvents(self):
@@ -131,7 +147,6 @@ class Viewport():
 
             elif event.type == pygame.VIDEORESIZE:
                 self.width, self.height = event.dict['size']
-                print'reload'
                 self.loadTextures()
                 self.loadFbos()
 
@@ -161,16 +176,14 @@ class Viewport():
             self.clock.tick(30)
             self.handleEvents()
 
-            
-
-            fov = 60
-            aspect = float(self.width) / float(self.height)
-            znear = 0.1
-            zfar = 1000.0
+            self.fov = 60
+            self.aspect = float(self.width) / float(self.height)
+            self.znear = 0.01
+            self.zfar = 100.0
 
             glMatrixMode(GL_PROJECTION)
             glLoadIdentity()
-            gluPerspective(fov, aspect, znear, zfar)
+            gluPerspective(self.fov, self.aspect, self.znear, self.zfar)
 
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity()
@@ -178,31 +191,32 @@ class Viewport():
                 self.camera.target[0], self.camera.target[1], self.camera.target[2],
                 self.camera.up[0], self.camera.up[1], self.camera.up[2]) 
 
-            
-
             self.se.generateParticle()
             self.render()
             self.se.updateParticles()
+
+            self.renderSSAO()
 
             pygame.display.flip()
 
     def render(self):
 
-        glBindFramebuffer(GL_FRAMEBUFFER, self.FBOMultisampled)
+        glBindFramebuffer(GL_FRAMEBUFFER, self.fboPrepassMS)
         glDrawBuffers(4, (GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3))
 
         glViewport(0, 0, self.width, self.height)
         glEnable(GL_DEPTH_TEST)
-        glClearColor(1.0, 1.0, 1.0, 1.0)
+        glClearColor(0.0, 0.0, 0.0, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         glUseProgram(self.programs["prepass"].id)
         textureLocation = glGetUniformLocation(self.programs["prepass"].id, "uColorTexture")
         cameraPositionLocation = glGetUniformLocation(self.programs["prepass"].id, "uCameraPosition")
         isSnowLocation = glGetUniformLocation(self.programs["prepass"].id, "uIsSnow")
+
         glUniform1i(textureLocation, 0);
         glUniform3f(cameraPositionLocation, self.camera.eye[0], self.camera.eye[1], self.camera.eye[2]);
-        
+
         glActiveTexture(GL_TEXTURE0)
         glUniform1i(isSnowLocation, 0)
         self.obj.draw()
@@ -211,18 +225,59 @@ class Viewport():
 
         # Transfer from Multisampled FBO to classic FBO
 
-        self.transferTexture(self.FBOMultisampled, self.FBO, GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT0, colorTexture=True)
-        self.transferTexture(self.FBOMultisampled, self.FBO, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT1, colorTexture=True)
-        self.transferTexture(self.FBOMultisampled, self.FBO, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT2, colorTexture=True)
-        self.transferTexture(self.FBOMultisampled, self.FBO, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT3, colorTexture=True)
-        self.transferTexture(self.FBOMultisampled, self.FBO, None, None, colorTexture=False)
+        self.transferTexture(self.fboPrepassMS, self.fboPrepass, GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT0, colorTexture=True)
+        self.transferTexture(self.fboPrepassMS, self.fboPrepass, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT1, colorTexture=True)
+        self.transferTexture(self.fboPrepassMS, self.fboPrepass, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT2, colorTexture=True)
+        self.transferTexture(self.fboPrepassMS, self.fboPrepass, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT3, colorTexture=True)
+        self.transferTexture(self.fboPrepassMS, self.fboPrepass, None, None, colorTexture=False)
 
         # Blit the result
 
         self.blitToScreen(0, 0, self.width, self.height, self.texs["color"].id)
         self.blitToScreen(0, 0, self.width/4, self.height/4, self.texs["illum"].id)
         self.blitToScreen(self.width/4, 0, self.width/4, self.height/4, self.texs["id"].id)
-        self.blitToScreen(2*self.width/4, 0, self.width/4, self.height/4, self.texs["shadowmap"].id)
+        self.blitToScreen(2*self.width/4, 0, self.width/4, self.height/4, self.texs["normal"].id)
+
+    def renderSSAO(self):
+
+        glBindFramebuffer(GL_FRAMEBUFFER, self.fboSsao)
+        glDrawBuffers(1, (GL_COLOR_ATTACHMENT0))
+        glViewport(0, 0, self.width, self.height)
+        glClearColor(1.0, 1.0, 1.0, 1.0)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glDisable(GL_DEPTH_TEST)
+
+        glUseProgram(self.programs["ssao"].id)
+
+        glUseProgram(self.programs["ssao"].id)
+        glUniform1i(glGetUniformLocation(self.programs["ssao"].id, "uNormalTexture"), 0)
+        glUniform1i(glGetUniformLocation(self.programs["ssao"].id, "uDepthTexture"), 1)
+        glUniform1i(glGetUniformLocation(self.programs["ssao"].id, "uRotationTexture"), 2)
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, self.texs["normal"].id)
+        glActiveTexture(GL_TEXTURE1)
+        glBindTexture(GL_TEXTURE_2D, self.texs["depth"].id)
+        glActiveTexture(GL_TEXTURE2)
+        glBindTexture(GL_TEXTURE_2D, self.texs["rot"].id)
+
+        proj = uf.create_perspective_matrix_improved(self.fov, self.aspect, self.znear, self.zfar)
+        invProj = npla.inv(proj)
+        glUniformMatrix4fv(glGetUniformLocation(self.programs["ssao"].id, "uInverseProjectionMatrix"), 1, GL_TRUE, invProj.astype(np.float32))
+
+        kernelRadius = 0.2
+        sampleCount = 128
+
+        glUniform2fv(glGetUniformLocation(self.programs["ssao"].id, "uSSAOSamples"), sampleCount, uf.generate_ssao_kernel(kernelRadius, sampleCount))
+        glUniform2f(glGetUniformLocation(self.programs["ssao"].id, "uSXY"), self.width/3.0, self.height/3.0)
+        
+        # Render
+
+        glDisable(GL_DEPTH_TEST)
+        glClear(GL_COLOR_BUFFER_BIT)
+
+        draw_quad()
+
+        self.blitToScreen(0, self.height/4, 3*self.width/4, self.height, self.texs["ssao"].id)
 
     def transferTexture(self, srcFbo, dstFbo, srcBuffer, dstBuffer, colorTexture=True):
         glBindFramebuffer(GL_READ_FRAMEBUFFER, srcFbo)
