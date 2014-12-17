@@ -70,10 +70,6 @@ class Viewport():
         # self.obj.loadFromObj("C:/Users/Bastien/Documents/work/AngeloChristmas/scenes/bedroom/bedroom.obj")
         self.obj.generateGLLists()
 
-        # self.ground = Mesh.Mesh()
-        # self.ground.loadFromObj("E:/Bastien/AngeloChristmas/scenes/bedroom/ground.obj")
-        # self.ground.generateGLLists()
-
         self.loadTextures()
         self.loadFbos()
         
@@ -183,10 +179,9 @@ class Viewport():
                 self.camera.up[0], self.camera.up[1], self.camera.up[2]) 
 
             
+
             self.se.generateParticle()
-
             self.render()
-
             self.se.updateParticles()
 
             pygame.display.flip()
@@ -194,22 +189,24 @@ class Viewport():
     def render(self):
 
         glBindFramebuffer(GL_FRAMEBUFFER, self.FBOMultisampled)
-
         glDrawBuffers(4, (GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3))
 
         glViewport(0, 0, self.width, self.height)
         glEnable(GL_DEPTH_TEST)
+        glClearColor(1.0, 1.0, 1.0, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         glUseProgram(self.programs["prepass"].id)
         textureLocation = glGetUniformLocation(self.programs["prepass"].id, "uColorTexture")
         cameraPositionLocation = glGetUniformLocation(self.programs["prepass"].id, "uCameraPosition")
+        isSnowLocation = glGetUniformLocation(self.programs["prepass"].id, "uIsSnow")
         glUniform1i(textureLocation, 0);
         glUniform3f(cameraPositionLocation, self.camera.eye[0], self.camera.eye[1], self.camera.eye[2]);
-
+        
         glActiveTexture(GL_TEXTURE0)
-
+        glUniform1i(isSnowLocation, 0)
         self.obj.draw()
+        glUniform1i(isSnowLocation, 1)
         self.se.drawSnow()
 
         # Transfer from Multisampled FBO to classic FBO

@@ -2,12 +2,13 @@
 
 varying vec3 fs_in_normal;
 varying vec3 fs_in_pos; // View Space
+varying float fs_in_depth;
 varying vec2 fs_in_texcoord;
 varying vec4 fs_in_color;
 
 uniform sampler2D uColorTexture;
 uniform vec3 uCameraPosition;
-
+uniform int uIsSnow = 0;
 uniform mat4 shadowmapVPmatrix;
 
 vec3 dLightDirection = vec3(-0.5, -0.5, -0.5);
@@ -36,7 +37,12 @@ void main() {
     }
 
     gl_FragData[0] = color;
-    gl_FragData[1] = vec4(fs_in_normal, 1.0);
-    gl_FragData[2] = vec4(fs_in_pos, 1.0);
+    gl_FragData[1] = vec4(vec3(fs_in_depth * 0.01), 1.0);
+
+    if(uIsSnow == 1)
+    	gl_FragData[2] = vec4(1.0, 0.0, 0.0, 1.0);
+    else
+    	gl_FragData[2] = vec4(0.0, 1.0, 0.0, 1.0);
+    
     gl_FragData[3] = vec4(vlight(), 1.0);
 }

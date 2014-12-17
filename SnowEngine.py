@@ -55,12 +55,10 @@ class SnowEngine:
 
     def drawSnow(self):
         for p in self.particles:
-
             glPushMatrix()
             glTranslatef(p.xyz[0], p.xyz[1], p.xyz[2])
             glRotatef(90, 0, 1, 0)
             glScalef(p.size, p.size, 1.0)
-
             glColor3f(p.rgb[0], p.rgb[1], p.rgb[2])
             glCallList(self.spList)
             glPopMatrix()   
