@@ -45,8 +45,8 @@ class SnowEngine:
     def generateParticle(self):
         for i in range(self.rate):
             xyz = [random(), self.height + random() * self.heightVeriation, random()]
-            xyz[0] = xyz[0] * self.size[0] - self.size[0]/2.0
-            xyz[2] = xyz[2] * self.size[1] - self.size[1]/2.0
+            xyz[0] = xyz[0] * self.size[1] - self.size[1]/2.0
+            xyz[2] = xyz[2] * self.size[0] - self.size[0]/2.0
             rgb = [random(), random(), random()]
             size = random() * 0.3
             speed = min(self.maximumParticleSpeed, max(self.minimumParticleSpeed, random()))
@@ -58,7 +58,9 @@ class SnowEngine:
 
             glPushMatrix()
             glTranslatef(p.xyz[0], p.xyz[1], p.xyz[2])
+            glRotatef(90, 0, 1, 0)
             glScalef(p.size, p.size, 1.0)
+
             glColor3f(p.rgb[0], p.rgb[1], p.rgb[2])
             glCallList(self.spList)
             glPopMatrix()   

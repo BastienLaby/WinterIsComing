@@ -81,9 +81,9 @@ class Viewport():
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         self.se = SnowEngine.SnowEngine()
-        self.se.setSize([250, 250])
+        self.se.setSize([60, 30])
         self.se.setRate(25)
-        self.se.setHeight(25)
+        self.se.setHeight(10)
 
     def loadTextures(self):
         nbSample = 8
@@ -154,6 +154,7 @@ class Viewport():
                 dx = event.pos[0] - self.width/2
                 dy = event.pos[1] - self.height/2
                 self.camera.target = [0, -dy * 0.01, -10 + dx * 0.01]
+
 
     def startRendering(self):
 
