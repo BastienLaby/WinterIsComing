@@ -62,12 +62,14 @@ class Viewport():
         self.FBOMultisampled = glGenFramebuffers(1)
         glBindFramebuffer(GL_FRAMEBUFFER, self.FBOMultisampled)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, self.texs["color_ms"].id, 0)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D_MULTISAMPLE, self.texs["color2_ms"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, self.texs["depth_ms"].id, 0)
         glCheckFbo()
 
         self.FBO = glGenFramebuffers(1)
         glBindFramebuffer(GL_FRAMEBUFFER, self.FBO)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.texs["color"].id, 0)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, self.texs["color2"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self.texs["depth"].id, 0)
         glCheckFbo()
 
@@ -97,7 +99,6 @@ class Viewport():
         self.programs = {}
         self.programs["prepass"] = GLSLProgram(pathToShaders + "prepass.vs", pathToShaders + "prepass.fs")
         glCheckError()
-
 
     def handleEvents(self):
 
@@ -130,6 +131,8 @@ class Viewport():
             self.clock.tick(30)
             self.handleEvents()
 
+
+
             self.camera.eye = [50 * cos(time.time() * 0.05), 20, 50 * sin(time.time() * 0.05)]
             self.camera.target = [0, 0, 0]
 
@@ -137,6 +140,8 @@ class Viewport():
             aspect = float(self.width) / float(self.height)
             znear = 0.1
             zfar = 1000.0
+
+            
 
             glMatrixMode(GL_PROJECTION)
             glLoadIdentity()
@@ -169,11 +174,12 @@ class Viewport():
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, self.texs["color_ms"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D_MULTISAMPLE, self.texs["color2_ms"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, self.texs["depth_ms"].id, 0)
-        glDrawBuffer(GL_COLOR_ATTACHMENT0 | GL_COLOR_ATTACHMENT1)
         glCheckFbo()
 
-        glEnable(GL_DEPTH_TEST)
+        glDrawBuffer(GL_COLOR_ATTACHMENT0 | GL_COLOR_ATTACHMENT1)
+
         glViewport(0, 0, self.width, self.height)
+        glEnable(GL_DEPTH_TEST)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         glUseProgram(self.programs["prepass"].id)
