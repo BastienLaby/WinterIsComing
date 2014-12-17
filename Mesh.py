@@ -105,11 +105,11 @@ class Mesh:
 
             elif values[0] == 'map_Kd':
           
-                hasToScale = False
+                self.hasToScale = False
                 scaleX, scaleY = 1, 1
                 if(values[1] == '-s'):
                     hasToScale = True
-                    scaleX, scaleY = values[2], values[3]
+                    self.scaleX, self.scaleY = values[2], values[3]
                     textureFile = self.rootPath + values[4]
                 else:
                     textureFile = self.rootPath + values[1]
@@ -147,6 +147,8 @@ class Mesh:
                         glColor3f(rgb[0], rgb[1], rgb[2])
             else:
                 glColor3f(1.0, 1.0, 1.0)
+
+
 
             glBegin(GL_POLYGON)
             for i in range(len(vertices)):

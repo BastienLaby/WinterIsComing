@@ -1,0 +1,277 @@
+newmtl CHAR33:sh_tears1SG
+illum 4
+Kd 0.84 0.91 1.00
+Ka 0.00 0.00 0.00
+Tf 0.76 0.76 0.76
+Ni 1.00
+newmtl CHAR34:blinn1SG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_hairs.tga
+Ni 1.00
+newmtl CHAR34:blinn1SG3
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_nails.tga
+Ni 1.00
+newmtl CHAR34:blinn1SG4
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_mouth.tga
+Ni 1.00
+newmtl CHAR34:blinn3SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_body2.tga
+Ni 1.00
+newmtl CHAR34:blinn3SG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd tshirt_pyjama2.tga
+Ni 1.00
+newmtl CHAR34:blinn3SG3
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_pants_pyjama2.tga
+Ni 1.00
+newmtl CHAR34:blinn4SG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_teeth.tga
+Ni 1.00
+newmtl CHAR34:mat_eyelidsSG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_eyelids.tga
+Ni 1.00
+newmtl CHAR34:sh_slipperSG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_bunny_slippers_a.tga
+Ni 1.00
+Ks 0.29 0.23 0.13
+newmtl CHAR34:tmp_blinn4SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_eyes.tga
+Ni 1.00
+newmtl CHAR34:tmp_surfaceShader1SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_pupils.tga
+Ni 1.00
+newmtl PROP2:lambert2SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd C_comic_books.tga
+Ni 1.00
+newmtl PROP3:lambert2SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd C_comic_book_B.tga
+Ni 1.00
+newmtl PROP4:lambert2SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd C_comic_book_C.tga
+Ni 1.00
+newmtl PROP5:lambert2SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd C_comic_book_B.tga
+Ni 1.00
+newmtl PROP6:lambert2SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd C_comic_book_C.tga
+Ni 1.00
+newmtl PROP28:lambert2SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd C_comic_books.tga
+Ni 1.00
+newmtl SET1:lambert65SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl SET1:lambert77SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_bonbons_color.tga
+Ni 1.00
+newmtl SET1:lambert78SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_bonbons_color2.tga
+Ni 1.00
+newmtl SET1:lambert100SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_camionnette_color.tga
+Ni 1.00
+newmtl SET1:lambert105SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_coffre_color_md_2.tga
+Ni 1.00
+newmtl SET1:lambert106SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_perso_coffre_color.tga
+Ni 1.00
+newmtl SET1:lambert109SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_perso_au_chapeau_color.tga
+Ni 1.00
+newmtl SET1:lambert113SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_livre_b.tga
+Ni 1.00
+newmtl SET1:lambert115SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_lecteurcd_color.tga
+Ni 1.00
+newmtl SET1:lambert116SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_casque.tga
+Ni 1.00
+newmtl SET1:lambert117SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_lit_color_md.tga
+Ni 1.00
+newmtl SET1:lambert118SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_lit_montants_color_md.tga
+Ni 1.00
+newmtl SET1:lambert119SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_oreiller_color_md.tga
+Ni 1.00
+newmtl SET1:lambert147SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_chapeau_perso_color.tga
+Ni 1.00
+newmtl SET1:lambert148SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_socle_perso_chapeau_color.tga
+Ni 1.00
+newmtl SET1:lambert151SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_roller.tga
+Ni 1.00
+newmtl SET1:lambert163SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_magazine_b.tga
+Ni 1.00
+newmtl SET1:lambert168SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_bma_portable_game_console.tga
+Ni 1.00
+newmtl SET1:lambert169SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd c_bma_portable_game_console_screen.tga
+Ni 1.00
+newmtl initialParticleSE
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl initialShadingGroup
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl lambert2SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd neige.jpg
+Ni 1.00
