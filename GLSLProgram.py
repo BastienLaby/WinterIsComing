@@ -28,11 +28,6 @@ class GLSLProgram():
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
             exit()
 
-        glBindAttribLocation(self.id,  0,  b"vs_in_position");
-        glBindAttribLocation(self.id,  1,  b"vs_in_normal");
-        glBindAttribLocation(self.id,  2,  b"vs_in_texcoord");
-        glBindFragDataLocation(self.id, 0, b"Color");
-
         glLinkProgram(self.id)
         glDeleteShader(vs)
         glDeleteShader(fs)

@@ -58,7 +58,9 @@ class Mesh:
                 self.loadMaterialFile(values[1])                
 
             elif values[0] == 'f':
-                face, texcoords, norms = [], [], []
+                face = []
+                texcoords = []
+                norms = []
                 for v in values[1:]:
                     w = v.split('/')
                     face.append(int(w[0]))
@@ -134,32 +136,34 @@ class Mesh:
 
         for face in self.faces:
             vertices, normals, texture_coords, materialName = face
-            currentMaterial = self.materials[materialName]
-            if 'textureID' in currentMaterial:
-                glActiveTexture(GL_TEXTURE0)
-                glBindTexture(GL_TEXTURE_2D, currentMaterial['textureID'])
+            if materialName in self.materials:
+                currentMaterial = self.materials[materialName]
+                if 'textureID' in currentMaterial:
+                    glActiveTexture(GL_TEXTURE0)
+                    glBindTexture(GL_TEXTURE_2D, currentMaterial['textureID'])
+                else:
+                    rgb = currentMaterial['Kd']
+                    if rgb:
+                        glColor3f(rgb[0], rgb[1], rgb[2])
             else:
-                rgb = list(currentMaterial['Kd'])
-                if rgb:
-                    glColor3f(rgb[0], rgb[1], rgb[2])
+                glColor3f(1.0, 1.0, 1.0)
+
             glBegin(GL_POLYGON)
             for i in range(len(vertices)):
-                vertex = list(self.vertices[vertices[i] - 1])
-                glVertex3f(vertex[0], vertex[1], vertex[2])
-
                 if normals[i] > 0:
-                    normal = list(self.normals[normals[i] - 1])
+                    normal = self.normals[normals[i] - 1]
                     glNormal3f(normal[0], normal[1], normal[2])
                 if texture_coords[i] > 0:
-                    tex = list(self.texcoords[texture_coords[i] - 1])
+                    tex = self.texcoords[texture_coords[i] - 1]
                     glTexCoord2f(tex[0], tex[1])
+                else:
+                    glTexCoord2f(1.0, 1.0)
+                vertex = self.vertices[vertices[i] - 1]
+                glVertex3f(vertex[0], vertex[1], vertex[2])
             glEnd()
 
         glBindTexture(GL_TEXTURE_2D, 0)
         glEndList()
 
     def draw(self):
-        # glCallList(self.glList)
-        glBindVertexArray(self.vao)
-        glDrawElements(GL_TRIANGLES, 12 * 3, GL_UNSIGNED_INT, None)
-        glBindVertexArray(0)
+        glCallList(self.glList)

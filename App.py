@@ -15,7 +15,6 @@ from GLSLProgram import GLSLProgram
 from GLTexture import Texture, TextureMS
 import Camera
 import Mesh
-import Cube
 import SnowEngine
 from Tools import glCheckError, glCheckFbo
 
@@ -43,23 +42,20 @@ class Viewport():
         pygame.key.set_repeat(3, 40)
 
         self.camera = Camera.Camera()
-        
         self.camera.up = [0, 1, 0]
         
         self.computeShaders()
 
         print('Load geometry...')
 
-        # self.obj = Mesh.Mesh()
-        # # self.obj.loadFromObj("E:/Bastien/AngeloChristmas/scenes/bedroom/bedroom.obj")
-        # self.obj.loadFromObj("C:/Users/Bastien/Documents/work/AngeloChristmas/scenes/bedroom/bedroom.obj")
-        # self.obj.generateGLLists()
+        self.obj = Mesh.Mesh()
+        # self.obj.loadFromObj("E:/Bastien/AngeloChristmas/scenes/bedroom/bedroom.obj")
+        self.obj.loadFromObj("C:/Users/Bastien/Documents/work/AngeloChristmas/scenes/bedroom/bedroom.obj")
+        self.obj.generateGLLists()
 
         # self.ground = Mesh.Mesh()
         # self.ground.loadFromObj("E:/Bastien/AngeloChristmas/scenes/bedroom/ground.obj")
         # self.ground.generateGLLists()
-
-        self.cube = Cube.Cube()
 
         self.loadTextures()
         
@@ -84,17 +80,16 @@ class Viewport():
 
         self.displayedPass = "ColorPass"
 
-####################################################################################################################################################
-
     def loadTextures(self):
         nbSample = 8
         self.texs = {}
         self.texs["color_ms"] = TextureMS(nbSample, GL_RGBA8, self.width, self.height)
+        self.texs["color2_ms"] = TextureMS(nbSample, GL_RGBA8, self.width, self.height)
         self.texs["depth_ms"] = TextureMS(nbSample, GL_DEPTH_COMPONENT24, self.width, self.height)
-        self.texs["color"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
-        self.texs["depth"] = Texture(GL_DEPTH_COMPONENT24, self.width, self.height, GL_DEPTH_COMPONENT, GL_FLOAT)
 
-####################################################################################################################################################
+        self.texs["color"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
+        self.texs["color2"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
+        self.texs["depth"] = Texture(GL_DEPTH_COMPONENT24, self.width, self.height, GL_DEPTH_COMPONENT, GL_FLOAT)
 
     def computeShaders(self):
         # pathToShaders = "E:/Bastien/WinterIsComing/shaders/"
@@ -102,16 +97,7 @@ class Viewport():
         self.programs = {}
         self.programs["prepass"] = GLSLProgram(pathToShaders + "prepass.vs", pathToShaders + "prepass.fs")
         glCheckError()
-        
-####################################################################################################################################################
 
-    def renderscene(self):
-        # self.obj.draw()
-        # self.ground.draw()
-        self.cube.draw()
-        pass
-
-####################################################################################################################################################
 
     def handleEvents(self):
 
@@ -134,9 +120,7 @@ class Viewport():
 
                 if event.key == pygame.K_1:
                     self.displayedPass = "ColorPass"
-
-####################################################################################################################################################
-     
+ 
     def startRendering(self):
 
         self.running = True
@@ -146,7 +130,7 @@ class Viewport():
             self.clock.tick(30)
             self.handleEvents()
 
-            self.camera.eye = [50 * cos(time.time()), 20, 50 * sin(time.time())]
+            self.camera.eye = [50 * cos(time.time() * 0.05), 20, 50 * sin(time.time() * 0.05)]
             self.camera.target = [0, 0, 0]
 
             fov = 60
@@ -169,47 +153,55 @@ class Viewport():
 
             self.render()
 
-            pygame.display.flip()
+            self.se.updateParticles()
 
-####################################################################################################################################################
+            pygame.display.flip()
 
     def render(self):
 
         glBindFramebuffer(GL_FRAMEBUFFER, self.FBO)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.texs["color"].id, 0)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, self.texs["color2"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self.texs["depth"].id, 0)
         glCheckFbo()
 
         glBindFramebuffer(GL_FRAMEBUFFER, self.FBOMultisampled)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, self.texs["color_ms"].id, 0)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D_MULTISAMPLE, self.texs["color2_ms"].id, 0)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, self.texs["depth_ms"].id, 0)
-        glDrawBuffer(GL_COLOR_ATTACHMENT0)
+        glDrawBuffer(GL_COLOR_ATTACHMENT0 | GL_COLOR_ATTACHMENT1)
         glCheckFbo()
 
         glEnable(GL_DEPTH_TEST)
         glViewport(0, 0, self.width, self.height)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        projLoc = glGetUniformLocation(self.programs["prepass"].id, "u_projection")
-        viewLoc = glGetUniformLocation(self.programs["prepass"].id, "u_view")
+        glUseProgram(self.programs["prepass"].id)
 
-        self.renderscene()
+        self.obj.draw()
         self.se.drawSnow()
-        self.se.updateParticles()
 
-        # Blit
+        # Transfer from Multisampled FBO to classic FBO
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, self.FBOMultisampled)
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, self.FBO)
+
         glReadBuffer(GL_COLOR_ATTACHMENT0)            
         glDrawBuffer(GL_COLOR_ATTACHMENT0)            
         glBlitFramebuffer(0, 0, self.width, self.height, 0, 0, self.width, self.height, GL_COLOR_BUFFER_BIT, GL_NEAREST)
+
+        glReadBuffer(GL_COLOR_ATTACHMENT1)            
+        glDrawBuffer(GL_COLOR_ATTACHMENT1)            
+        glBlitFramebuffer(0, 0, self.width, self.height, 0, 0, self.width, self.height, GL_COLOR_BUFFER_BIT, GL_NEAREST)
+
         glBlitFramebuffer(0, 0, self.width, self.height, 0, 0, self.width, self.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST)
+
+        # Blit the result
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, self.FBO)
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
-        glReadBuffer(GL_COLOR_ATTACHMENT0)            
-        glDrawBuffer(GL_BACK)            
+        glReadBuffer(GL_COLOR_ATTACHMENT1)
+        glDrawBuffer(GL_BACK)
         glBlitFramebuffer(0, 0, self.width, self.height, 0, 0, self.width, self.height, GL_COLOR_BUFFER_BIT, GL_NEAREST)
 
 ####################################################################################################################################################
