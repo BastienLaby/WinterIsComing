@@ -1,9 +1,3 @@
-newmtl CHAR33:sh_tears1SG
-illum 4
-Kd 0.84 0.91 1.00
-Ka 0.00 0.00 0.00
-Tf 0.76 0.76 0.76
-Ni 1.00
 newmtl CHAR34:blinn1SG1
 illum 4
 Kd 0.00 0.00 0.00
@@ -274,4 +268,11 @@ Kd 0.00 0.00 0.00
 Ka 0.00 0.00 0.00
 Tf 1.00 1.00 1.00
 map_Kd neige.jpg
+Ni 1.00
+newmtl lambert3SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd artic_winter_4_insight_designs-1.jpg
 Ni 1.00

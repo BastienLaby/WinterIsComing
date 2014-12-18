@@ -9,14 +9,14 @@ uniform sampler2D uColorTexture;
 uniform vec3 uCameraPosition;
 uniform int uIsSnow = 0;
 
-vec3 dLightDirection = vec3(-0.5, -0.5, -0.5);
+vec3 dLightDirection = vec3(-0.5, -0.7, -0.5);
 vec3 dLightDiffuseColor = vec3(1.0, 1.0, 1.0);
 vec3 dLightSpecularColor = vec3(0.0, 0.0, 1.0);
-float dLightIntensity = 1.0;
+float dLightIntensity = 0.6;
 
 float flight()
 {
-	return dot(fs_in_normal, -dLightDirection);
+	return dLightIntensity * dot(fs_in_normal, -dLightDirection);
 }
 
 vec3 vlight()
@@ -31,7 +31,10 @@ void main() {
     vec4 color = texture2D(uColorTexture, fs_in_texcoord);
     if(color.xyz == vec3(0.0, 0.0, 0.0))
     {
-        color = vec4(1.0) - 0.2 * fs_in_color;
+        color = vec4(1.0) - 0.3 * fs_in_color;
+        color.a = 1 - fs_in_color.a;
+    }
+    else {
         color.a = 1.0;
     }
     gl_FragData[0] = color;

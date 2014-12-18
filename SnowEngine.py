@@ -23,8 +23,8 @@ class SnowEngine:
         self.height = 50
         self.heightVeriation = 5
         self.rate = 5
-        self.minimumParticleSpeed = 0.4
-        self.maximumParticleSpeed = 1.0
+        self.minimumParticleSpeed = 0.005
+        self.maximumParticleSpeed = 0.2
         self.spList = glGenLists(1)
         glNewList(self.spList, GL_COMPILE)
         glBegin(GL_TRIANGLE_FAN)
@@ -59,7 +59,7 @@ class SnowEngine:
             glTranslatef(p.xyz[0], p.xyz[1], p.xyz[2])
             glRotatef(90, 0, 1, 0)
             glScalef(p.size, p.size, 1.0)
-            glColor3f(p.rgb[0], p.rgb[1], p.rgb[2])
+            glColor4f(p.rgb[0], p.rgb[1], p.rgb[2], p.size)
             glCallList(self.spList)
             glPopMatrix()   
         

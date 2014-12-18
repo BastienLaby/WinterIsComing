@@ -16,7 +16,7 @@ class GLSLProgram():
         except IOError as e:
             print("Fail to load" + str(vertexShaderFile))
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
-            exit()
+            return
 
         # Load Fragment Shader
         try:
@@ -26,7 +26,7 @@ class GLSLProgram():
         except IOError as e:
             print("Fail to load " + str(fragmentShaderFile))
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
-            exit()
+            return
 
         glLinkProgram(self.id)
         glDeleteShader(vs)
@@ -37,7 +37,7 @@ class GLSLProgram():
         loglength = glGetProgramiv(self.id, GL_INFO_LOG_LENGTH)
         if(loglength > 1):
             print("Error in linking shaders (status = %s) : %s" % (str(status), glGetProgramInfoLog(self.id)))
-            exit()
+            return 
 
         print("Shaders successfully loaded")
 
@@ -52,6 +52,6 @@ class GLSLProgram():
         loglength = glGetShaderiv(shader, GL_INFO_LOG_LENGTH)
         if(loglength > 1):
             print("Error in compiling %s (Status = %s): %s" % (str(shaderType), str(status), glGetShaderInfoLog(shader)))
-            exit()
+            return
 
         return shader

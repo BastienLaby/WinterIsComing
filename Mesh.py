@@ -147,9 +147,7 @@ class Mesh:
                         glColor3f(rgb[0], rgb[1], rgb[2])
             else:
                 glColor3f(1.0, 1.0, 1.0)
-
-
-
+            
             glBegin(GL_POLYGON)
             for i in range(len(vertices)):
                 if normals[i] > 0:
@@ -157,7 +155,10 @@ class Mesh:
                     glNormal3f(normal[0], normal[1], normal[2])
                 if texture_coords[i] > 0:
                     tex = self.texcoords[texture_coords[i] - 1]
-                    glTexCoord2f(tex[0], tex[1])
+                    if "SET1:lambert105SG" in materialName:
+                        glTexCoord2f(0.5*tex[0], 0.5*tex[1])
+                    else:
+                        glTexCoord2f(tex[0], tex[1])
                 else:
                     glTexCoord2f(1.0, 1.0)
                 vertex = self.vertices[vertices[i] - 1]
