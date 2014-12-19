@@ -1,5 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#@author Bastien Laby, December 2014
 
 from random import random
 
@@ -23,7 +23,7 @@ class SnowEngine:
         self.height = 50
         self.heightVeriation = 5
         self.rate = 5
-        self.minimumParticleSpeed = 0.005
+        self.minimumParticleSpeed = 0.05
         self.maximumParticleSpeed = 0.2
         self.spList = glGenLists(1)
         glNewList(self.spList, GL_COMPILE)
@@ -48,7 +48,7 @@ class SnowEngine:
             xyz[0] = xyz[0] * self.size[1] - self.size[1]/2.0
             xyz[2] = xyz[2] * self.size[0] - self.size[0]/2.0
             rgb = [random(), random(), random()]
-            size = random() * 0.3
+            size = random() * 0.6
             speed = min(self.maximumParticleSpeed, max(self.minimumParticleSpeed, random()))
             p = SnowParticle(xyz, rgb, size, speed)
             self.particles.append(p)

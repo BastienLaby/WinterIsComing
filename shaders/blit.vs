@@ -1,3 +1,7 @@
+/*
+@author Bastien Laby, december 2014
+*/
+
 #version 120
 
 varying vec2 fragUV;

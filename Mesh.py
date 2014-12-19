@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+#@author Bastien Laby, December 2014
+
 import os
 
 from OpenGL.GL import *

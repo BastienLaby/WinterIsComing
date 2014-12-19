@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+#@author Bastien Laby, December 2014
+
 from OpenGL.GL import *
 
 class Texture():

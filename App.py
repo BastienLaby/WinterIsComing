@@ -1,39 +1,24 @@
-'''
-    - Created with Sublime Text 2.
-    - User: song.chen
-    - Date: 2014-12-18
-    - Time: 11:00:48
-    - Contact: song.chen@qunar.com
-'''
-'''
-    - Created with Sublime Text 2.
-    - User: song.chen
-    - Date: 2014-12-17
-    - Time: 10:49:40
-    - Contact: song.chen@qunar.com
-'''
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#@author Bastien Laby, December 2014
 
-import sys
 from math import cos, sin
 import time
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
-import OpenGL.GLUT as glut
 
 import numpy as np
 import numpy.linalg as npla
+
 import pygame
 
 from GLSLProgram import GLSLProgram
 from GLTexture import Texture, TextureMS
-import Camera
 import Mesh
 import SnowEngine
 from Tools import glCheckError, glCheckFbo
-import uf
+import matrix
 
 def draw_quad():
     glBegin(GL_QUADS)
@@ -45,13 +30,9 @@ def draw_quad():
 
 class Viewport():
 
-    """
-    A class which render the different passes of a .obj file, depending on the Maya parameters.
-    """
-
     def __init__(self):
 
-        screen = pygame.display.set_mode((1280, 720), pygame.OPENGL | pygame.DOUBLEBUF | pygame.RESIZABLE)
+        screen = pygame.display.set_mode((1920, 1200), pygame.OPENGL | pygame.DOUBLEBUF | pygame.RESIZABLE | pygame.FULLSCREEN)
         self.width, self.height = screen.get_size()
 
         pygame.init()
@@ -62,22 +43,24 @@ class Viewport():
         print "\t" + "Version : " + glGetString(GL_VERSION)
         print "\t" + "GLSL : " + glGetString(GL_SHADING_LANGUAGE_VERSION)
 
-        self.clock   = pygame.time.Clock()
-        self.key     = pygame.key.get_pressed()
+        glClearColor(0.0, 0.0, 0.0, 1.0)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+        pygame.display.flip()
+
+        self.clock = pygame.time.Clock()
+        self.key = pygame.key.get_pressed()
         pygame.key.set_repeat(3, 40)
 
-        self.camera = Camera.Camera()
-        self.camera.up = [0, 1, 0]
-        self.camera.eye = [-13, 7, -10]
-        self.camera.target = [0, 0, -10]
+        self.camera = {}
+        self.camera["up"] = [0, 1, 0]
+        self.camera["eye"] = [-13, 7, -10]
+        self.camera["target"] = [0, 0, -10]
         
         self.computeShaders()
 
-        print('Load geometry...')
-
         self.obj = Mesh.Mesh()
         self.obj.loadFromObj("assets/bedroom/bedroom.obj")
-        # self.obj.loadFromObj("C:/Users/Bastien/Documents/work/AngeloChristmas/scenes/bedroom/bedroom.obj")
         self.obj.generateGLLists()
 
         self.loadTextures()
@@ -87,12 +70,11 @@ class Viewport():
 
         self.se = SnowEngine.SnowEngine()
         self.se.setSize([100, 40])
-        self.se.setRate(5)
-        self.se.setHeight(15)
+        self.se.setRate(4)
+        self.se.setHeight(25)
 
         pygame.mixer.music.load("music/we-three-kings.mp3")
         pygame.mixer.music.play(loops=-1)
-        pygame.mixer.music.set_volume(pygame.mixer.music.get_volume() * 0.7)
 
     def loadTextures(self):
 
@@ -112,9 +94,7 @@ class Viewport():
         self.texs["illum"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
         self.texs["id"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
         self.texs["normal"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
-        self.texs["ssao"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
         self.texs["compo"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
-        self.texs["rot"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
         self.texs["dof"] = Texture(GL_RGBA8, self.width, self.height, GL_RGBA, GL_UNSIGNED_BYTE)
 
     def loadFbos(self):
@@ -137,12 +117,6 @@ class Viewport():
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self.texs["depth"].id, 0)
         glCheckFbo()
 
-        self.fboSsao = glGenFramebuffers(1)
-        glBindFramebuffer(GL_FRAMEBUFFER, self.fboSsao)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.texs["ssao"].id, 0)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self.texs["depthblit"].id, 0)
-        glCheckFbo()
-
         self.fboCompo = glGenFramebuffers(1)
         glBindFramebuffer(GL_FRAMEBUFFER, self.fboCompo)
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.texs["compo"].id, 0)
@@ -157,11 +131,9 @@ class Viewport():
 
     def computeShaders(self):
         pathToShaders = "shaders/"
-        # pathToShaders = "C:/Users/Bastien/Documents/work/WinterIsComing/shaders/"
         self.programs = {}
         self.programs["prepass"] = GLSLProgram(pathToShaders + "prepass.vs", pathToShaders + "prepass.fs")
         self.programs["blit"] = GLSLProgram(pathToShaders + "blit.vs", pathToShaders + "blit.fs")
-        self.programs["ssao"] = GLSLProgram(pathToShaders + "ssao.vs", pathToShaders + "ssao.fs")
         self.programs["compo"] = GLSLProgram(pathToShaders + "compo.vs", pathToShaders + "compo.fs")
         self.programs["dof"] = GLSLProgram(pathToShaders + "dof.vs", pathToShaders + "dof.fs")
         glCheckError()
@@ -186,13 +158,10 @@ class Viewport():
                 if event.key == pygame.K_SPACE:
                     self.computeShaders()
 
-                if event.key == pygame.K_1:
-                    self.displayedPass = "ColorPass"
-
             elif event.type == pygame.MOUSEMOTION:
                 dx = event.pos[0] - self.width/2
                 dy = event.pos[1] - self.height/2
-                self.camera.target = [0, -dy * 0.01, -10 + dx * 0.01]
+                self.camera["target"] = [0, -dy * 0.01, -10 + dx * 0.01]
 
 
     def startRendering(self):
@@ -215,14 +184,13 @@ class Viewport():
 
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity()
-            gluLookAt(self.camera.eye[0], self.camera.eye[1], self.camera.eye[2],
-                self.camera.target[0], self.camera.target[1], self.camera.target[2],
-                self.camera.up[0], self.camera.up[1], self.camera.up[2]) 
+            gluLookAt(self.camera["eye"][0], self.camera["eye"][1], self.camera["eye"][2],
+                self.camera["target"][0], self.camera["target"][1], self.camera["target"][2],
+                self.camera["up"][0], self.camera["up"][1], self.camera["up"][2]) 
 
             self.se.generateParticle()
             
             self.render()
-            self.renderSSAO()
             self.renderCompo()
             self.renderDof()
 
@@ -248,7 +216,7 @@ class Viewport():
         isSnowLocation = glGetUniformLocation(self.programs["prepass"].id, "uIsSnow")
 
         glUniform1i(textureLocation, 0);
-        glUniform3f(cameraPositionLocation, self.camera.eye[0], self.camera.eye[1], self.camera.eye[2]);
+        glUniform3f(cameraPositionLocation, self.camera["eye"][0], self.camera["eye"][1], self.camera["eye"][2]);
 
         glActiveTexture(GL_TEXTURE0)
         glUniform1i(isSnowLocation, 0)
@@ -271,43 +239,6 @@ class Viewport():
         self.blitToScreen(self.width/4, 0, self.width/4, self.height/4, self.texs["id"].id)
         self.blitToScreen(2*self.width/4, 0, self.width/4, self.height/4, self.texs["normal"].id)
 
-    def renderSSAO(self):
-
-        glBindFramebuffer(GL_FRAMEBUFFER, self.fboSsao)
-        glDrawBuffers(1, (GL_COLOR_ATTACHMENT0))
-        glViewport(0, 0, self.width, self.height)
-        glClearColor(1.0, 1.0, 1.0, 1.0)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glDisable(GL_DEPTH_TEST)
-
-        glUseProgram(self.programs["ssao"].id)
-
-        glUniform1i(glGetUniformLocation(self.programs["ssao"].id, "uNormalTexture"), 0)
-        glUniform1i(glGetUniformLocation(self.programs["ssao"].id, "uDepthTexture"), 1)
-        glUniform1i(glGetUniformLocation(self.programs["ssao"].id, "uRotationTexture"), 2)
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, self.texs["normal"].id)
-        glActiveTexture(GL_TEXTURE1)
-        glBindTexture(GL_TEXTURE_2D, self.texs["depth"].id)
-        glActiveTexture(GL_TEXTURE2)
-        glBindTexture(GL_TEXTURE_2D, self.texs["rot"].id)
-
-        proj = uf.create_perspective_matrix_improved(self.fov, self.aspect, self.znear, self.zfar)
-        invProj = npla.inv(proj)
-        glUniformMatrix4fv(glGetUniformLocation(self.programs["ssao"].id, "uInverseProjectionMatrix"), 1, GL_TRUE, invProj.astype(np.float32))
-
-        kernelRadius = 0.2
-        sampleCount = 128
-
-        glUniform2fv(glGetUniformLocation(self.programs["ssao"].id, "uSSAOSamples"), sampleCount, uf.generate_ssao_kernel(kernelRadius, sampleCount))
-        glUniform2f(glGetUniformLocation(self.programs["ssao"].id, "uSXY"), self.width/3.0, self.height/3.0)
-        
-        # Render
-
-        draw_quad()
-
-        self.blitToScreen(3*self.width/4, 0, self.width/4, self.height/4, self.texs["ssao"].id)
-
     def renderCompo(self):
 
         glBindFramebuffer(GL_FRAMEBUFFER, self.fboCompo)
@@ -321,16 +252,13 @@ class Viewport():
 
         glUniform1i(glGetUniformLocation(self.programs["compo"].id, "uColorTexture"), 0)
         glUniform1i(glGetUniformLocation(self.programs["compo"].id, "uIllumTexture"), 1)
-        glUniform1i(glGetUniformLocation(self.programs["compo"].id, "uOcclusionTexture"), 2)
-        glUniform1i(glGetUniformLocation(self.programs["compo"].id, "uIDTexture"), 3)
+        glUniform1i(glGetUniformLocation(self.programs["compo"].id, "uIDTexture"), 2)
 
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, self.texs["color"].id)
         glActiveTexture(GL_TEXTURE1)
         glBindTexture(GL_TEXTURE_2D, self.texs["illum"].id)
         glActiveTexture(GL_TEXTURE2)
-        glBindTexture(GL_TEXTURE_2D, self.texs["ssao"].id)
-        glActiveTexture(GL_TEXTURE3)
         glBindTexture(GL_TEXTURE_2D, self.texs["id"].id)
 
         glUniform2f(glGetUniformLocation(self.programs["compo"].id, "uScreenResolution"), self.width, self.height)
@@ -352,7 +280,7 @@ class Viewport():
 
         glUniform1i(glGetUniformLocation(self.programs["dof"].id, "uTexture"), 0)
         glUniform1i(glGetUniformLocation(self.programs["dof"].id, "uDepthTexture"), 1)
-        proj = uf.create_perspective_matrix_improved(self.fov, self.aspect, self.znear, self.zfar)
+        proj = matrix.create_perspective_matrix(self.fov, self.aspect, self.znear, self.zfar)
         invProj = npla.inv(proj)
         glUniformMatrix4fv(glGetUniformLocation(self.programs["dof"].id, "uInverseProjectionMatrix"), 1, GL_TRUE, invProj.astype(np.float32))
 
