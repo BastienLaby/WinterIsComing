@@ -1,10 +1,7 @@
-# -*- coding: utf-8 -*-
-#@author Bastien Laby, December 2014
-
 from OpenGL.GL import *
 
-class GLSLProgram():
 
+class GLSLProgram:
     def __init__(self, vertexShaderFile, fragmentShaderFile):
 
         self.id = glCreateProgram()
@@ -13,7 +10,7 @@ class GLSLProgram():
 
         # Load Vertex Shader
         try:
-            f = open(vertexShaderFile, 'r')
+            f = open(vertexShaderFile, "r")
             vs = self.createAndCompileShader(GL_VERTEX_SHADER, f.read())
             glAttachShader(self.id, vs)
         except IOError as e:
@@ -23,7 +20,7 @@ class GLSLProgram():
 
         # Load Fragment Shader
         try:
-            f = open(fragmentShaderFile, 'r')
+            f = open(fragmentShaderFile, "r")
             fs = self.createAndCompileShader(GL_FRAGMENT_SHADER, f.read())
             glAttachShader(self.id, fs)
         except IOError as e:
@@ -38,14 +35,17 @@ class GLSLProgram():
         # Check for program error
         status = glGetProgramiv(self.id, GL_LINK_STATUS)
         loglength = glGetProgramiv(self.id, GL_INFO_LOG_LENGTH)
-        if(loglength > 1):
-            print("Error in linking shaders (status = %s) : %s" % (str(status), glGetProgramInfoLog(self.id)))
-            return 
+        if loglength > 1:
+            print(
+                "Error in linking shaders (status = %s) : %s"
+                % (str(status), glGetProgramInfoLog(self.id))
+            )
+            return
 
         print("Shaders successfully loaded")
 
     def createAndCompileShader(self, shaderType, source):
-        
+
         shader = glCreateShader(shaderType)
         glShaderSource(shader, source)
         glCompileShader(shader)
@@ -53,8 +53,11 @@ class GLSLProgram():
         # Check for shader error
         status = glGetShaderiv(shader, GL_COMPILE_STATUS)
         loglength = glGetShaderiv(shader, GL_INFO_LOG_LENGTH)
-        if(loglength > 1):
-            print("Error in compiling %s (Status = %s): %s" % (str(shaderType), str(status), glGetShaderInfoLog(shader)))
+        if loglength > 1:
+            print(
+                "Error in compiling %s (Status = %s): %s"
+                % (str(shaderType), str(status), glGetShaderInfoLog(shader))
+            )
             return
 
         return shader
