@@ -1,7 +1,7 @@
 from OpenGL import GL
 
 
-def glCheckFbo():
+def gl_check_fbo():
     status = GL.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER)
     if status == GL.GL_FRAMEBUFFER_UNDEFINED:
         print("GL_FRAMEBUFFER_UNDEFINED")
@@ -23,6 +23,6 @@ def glCheckFbo():
         print("An error occurs")
 
 
-def glCheckError():
+def gl_check_error():
     if GL.glGetError() != GL.GL_NO_ERROR:
         print("Error OpenGL : %s" % GL.glGetError())

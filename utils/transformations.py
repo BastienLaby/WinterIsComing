@@ -357,9 +357,7 @@ direction : array d
 
     eye = numpy.eye(3, dtype=numpy.float64)
     ddt = numpy.outer(d, d)
-    skew = numpy.array(
-        [[0, d[2], -d[1]], [-d[2], 0, d[0]], [d[1], -d[0], 0]], dtype=numpy.float64
-    )
+    skew = numpy.array([[0, d[2], -d[1]], [-d[2], 0, d[0]], [d[1], -d[0], 0]], dtype=numpy.float64)
 
     mtx = ddt + numpy.cos(angle) * (eye - ddt) + numpy.sin(angle) * skew
 
@@ -851,9 +849,7 @@ True
     return scale, shear, angles, translate, perspective
 
 
-def compose_matrix(
-    scale=None, shear=None, angles=None, translate=None, perspective=None
-):
+def compose_matrix(scale=None, shear=None, angles=None, translate=None, perspective=None):
     """Return transformation matrix from sequence of transformations.
 
 This is the inverse of the decompose_matrix function.
@@ -1546,9 +1542,7 @@ True
     pi2 = math.pi * 2.0
     t1 = pi2 * rand[1]
     t2 = pi2 * rand[2]
-    return numpy.array(
-        [numpy.cos(t2) * r2, numpy.sin(t1) * r1, numpy.cos(t1) * r1, numpy.sin(t2) * r2]
-    )
+    return numpy.array([numpy.cos(t2) * r2, numpy.sin(t1) * r1, numpy.cos(t1) * r1, numpy.sin(t2) * r2])
 
 
 def random_rotation_matrix(rand=None):

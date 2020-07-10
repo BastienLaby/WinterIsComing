@@ -7,17 +7,17 @@ import pygame
 class Mesh(object):
     def __init__(self):
         self.materials = {}
-        self.glList = 0
+        self.gl_list = 0
 
-    def loadFromObj(self, filename):
+    def load_from_obj(self, filepath):
 
         f = None
         try:
-            f = open(filename, "r")
+            f = open(filepath, "r")
         except IOError:
-            raise Exception("Cannot open %s" % filename)
+            raise Exception("Cannot open %s" % filepath)
 
-        self.rootPath = "/".join(filename.split("/")[:-1]) + "/"
+        self.root_path = os.path.dirname(filepath)
         self.vertices = []
         self.normals = []
         self.texcoords = []
@@ -48,7 +48,7 @@ class Mesh(object):
                 materialName = values[1]
 
             elif values[0] == "mtllib":
-                self.loadMaterialFile(values[1])
+                self.load_material_file(values[1])
 
             elif values[0] == "f":
                 face = []
@@ -68,21 +68,19 @@ class Mesh(object):
                 self.faces.append((face, norms, texcoords, materialName))
         return
 
-    def loadMaterialFile(self, filename):
+    def load_material_file(self, filename):
 
-        f = None
+        filepath = os.path.join(self.root_path, filename)
         try:
-            f = open(self.rootPath + filename, "r")
+            with open(filepath, "r") as f:
+                lines = f.readlines()
         except IOError:
-            print(
-                "The program cannot load %s.\nEnd of program."
-                % str(self.rootPath + filename)
-            )
+            print("Cannot load %s." % filepath)
             return None
 
         currentMTLName = ""
 
-        for line in f:
+        for line in lines:
 
             if line.startswith("#"):
                 continue
@@ -103,45 +101,31 @@ class Mesh(object):
 
                 if values[1] == "-s":
                     self.scaleX, self.scaleY = values[2], values[3]
-                    textureFile = self.rootPath + values[4]
+                    textureFile = values[4]
                 else:
-                    textureFile = self.rootPath + values[1]
+                    textureFile = values[1]
 
-                data = pygame.image.load(os.path.join("", textureFile))
+                data = pygame.image.load(os.path.join(self.root_path, textureFile))
                 image = pygame.image.tostring(data, "RGBA", 1)
                 w, h = data.get_rect().size
 
                 # Generate GL Texture
                 self.materials[currentMTLName]["textureID"] = GL.glGenTextures(1)
-                GL.glBindTexture(
-                    GL.GL_TEXTURE_2D, self.materials[currentMTLName]["textureID"]
-                )
-                GL.glTexParameteri(
-                    GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR
-                )
-                GL.glTexParameteri(
-                    GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR
-                )
+                GL.glBindTexture(GL.GL_TEXTURE_2D, self.materials[currentMTLName]["textureID"])
+                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
                 GL.glTexImage2D(
-                    GL.GL_TEXTURE_2D,
-                    0,
-                    GL.GL_RGBA,
-                    w,
-                    h,
-                    0,
-                    GL.GL_RGBA,
-                    GL.GL_UNSIGNED_BYTE,
-                    image,
+                    GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, w, h, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, image,
                 )
 
             else:
                 self.materials[currentMTLName][values[0]] = list(map(float, values[1:]))
 
-    def generateGLLists(self):
+    def generate_gl_lists(self):
 
-        GL.glDeleteLists(self.glList, 1)
-        self.glList = GL.glGenLists(1)
-        GL.glNewList(self.glList, GL.GL_COMPILE)
+        GL.glDeleteLists(self.gl_list, 1)
+        self.gl_list = GL.glGenLists(1)
+        GL.glNewList(self.gl_list, GL.GL_COMPILE)
 
         for face in self.faces:
             vertices, normals, texture_coords, materialName = face
@@ -178,4 +162,4 @@ class Mesh(object):
         GL.glEndList()
 
     def draw(self):
-        GL.glCallList(self.glList)
+        GL.glCallList(self.gl_list)
