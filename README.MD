@@ -5,10 +5,9 @@ Little 3D Viewer with Chritmas theme using Python & OpenGL.
 3D models and textures are the property of @TeamTO.
 This application uses legacy OpenGL.
 
-Dependencies:
-- OpenGL version 2.X
-- Python 2.7
-- Python 2.7 packages:
-	- PyOpenGL
-	- numpy
-	- pygame
+## Installation
+
+* `py -3.7 -m venv .`
+* `.\Scripts\activate.bat` (windows) or `source /bin/activate` (linux)
+* `pip install -r requirements.txt`
+* `python app.py`
