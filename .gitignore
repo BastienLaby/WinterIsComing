@@ -1,3 +1,9 @@
 # Compiled Object files
 *.pyc
+
 assets/bedroom/bedroom.ma
+
+[Ll]ib
+[Ss]cripts
+[Ii]nclude
+pyvenv.cfg
